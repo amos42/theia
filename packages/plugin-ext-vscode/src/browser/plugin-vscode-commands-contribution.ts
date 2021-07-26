@@ -72,6 +72,10 @@ export namespace VscodeCommands {
         id: 'vscode.open'
     };
 
+    export const OPEN_WITH: Command = {
+        id: 'vscode.openWith'
+    };
+
     export const OPEN_FOLDER: Command = {
         id: 'vscode.openFolder'
     };
@@ -141,6 +145,53 @@ export class PluginVscodeCommandsContribution implements CommandContribution {
                 }
                 const editorOptions = DocumentsMainImpl.toEditorOpenerOptions(this.shell, options);
                 await open(this.openerService, new TheiaURI(resource), editorOptions);
+            }
+        });
+
+        commands.registerCommand(VscodeCommands.OPEN_WITH, {
+            isVisible: () => false,
+            execute: async (resource: URI, viewType: string, columnOrOptions?: ViewColumn | TextDocumentShowOptions) => {
+                if (!resource) {
+                    throw new Error(`${VscodeCommands.OPEN.id} command requires at least URI argument.`);
+                }
+                if (!URI.isUri(resource)) {
+                    throw new Error(`Invalid argument for ${VscodeCommands.OPEN.id} command with URI argument. Found ${resource}`);
+                }
+
+                let options: TextDocumentShowOptions | undefined;
+                if (typeof columnOrOptions === 'number') {
+                    options = {
+                        viewColumn: columnOrOptions
+                    };
+                } else if (columnOrOptions) {
+                    options = {
+                        ...columnOrOptions
+                    };
+                }
+
+                const editorOptions = DocumentsMainImpl.toEditorOpenerOptions(this.shell, options);
+
+                let ret;
+                if (viewType) {
+                    const lowerViewType = viewType.toLowerCase();
+                    // Theia set custom editor id using 'custom-editor-' prefix
+                    const customViewType = `custom-editor-${lowerViewType}`;
+                    const openers = await this.openerService.getOpeners();
+                    for (const opener of openers) {
+                        const idLowerCase = opener.id.toLowerCase();
+                        if (lowerViewType === idLowerCase || customViewType === idLowerCase) {
+                            ret = opener.open(new TheiaURI(resource), editorOptions);
+                            break;
+                        }
+                    }
+                }
+
+                if (!ret) {
+                    ret = await open(this.openerService, new TheiaURI(resource), editorOptions);
+                    console.warn(`Fail to open editor. viewType : [${viewType}]`);
+                }
+
+                return ret;
             }
         });
 
