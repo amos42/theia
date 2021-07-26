@@ -477,6 +477,7 @@
                 const newFrame = document.createElement('iframe');
                 newFrame.setAttribute('id', 'pending-frame');
                 newFrame.setAttribute('frameborder', '0');
+                newFrame.setAttribute('allow', 'clipboard-read;clipboard-write');
                 newFrame.setAttribute('sandbox', options.allowScripts ? 'allow-scripts allow-forms allow-same-origin' : 'allow-same-origin');
                 if (host.fakeLoad) {
                     // We should just be able to use srcdoc, but I wasn't
