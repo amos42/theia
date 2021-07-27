@@ -6,6 +6,9 @@
     "yarn": "1.0.x || >=1.2.1",
     "node": ">=12.14.1 <13"
   },
+  "config": {
+    "warnOnPotentiallyInsecureHostPattern": false
+  },
   "resolutions": {
     "**/@types/node": "12",
     "**/node-abi": "^2.18.0"
